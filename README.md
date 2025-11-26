@@ -42,3 +42,15 @@ On behalf of:
 
 ## Project Overview
 Money management
+
+## Run Instruction (in Windows)
+1. Download PostgreSQL
+2. RUn installer
+3. Set the password in `.env` file
+4. Default port is `5432`
+5. Connect to PostgreSQL `psql -U postgres`
+6. Inside psql, create database: `CREATE DATABASE finance_manager;`
+7. Exit psql `\q`
+8. Run migrations `psql -U postgres -d finance_manager -f migrations\001_create_tables.sql`
+9. Install Go dependencies `go mod download` and `go mod tidy`
+10. Run the application `go run cmd/api/main.go` and it will start on `http://localhost:8080`

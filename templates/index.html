@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finance Manager</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body class="bg-white text-gray-900">
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M3 3h8v8H3V3zm10 0h8v8h-8V3zM3 13h8v8H3v-8zm10 0h8v8h-8v-8z" />
+                </svg>
+                <span class="sidebar-title">Finance Manager</span>
+            </div>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="#" class="nav-item active" data-section="dashboard">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+                <span>Dashboard</span>
+            </a>
+            <a href="#" class="nav-item" data-section="transactions">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                </svg>
+                <span>Transactions</span>
+            </a>
+            <a href="#" class="nav-item" data-section="categories">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                </svg>
+                <span>Categories</span>
+            </a>
+            <a href="#" class="nav-item" data-section="accounts">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                </svg>
+                <span>Accounts</span>
+            </a>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="user-info">
+                <div class="user-avatar">👤</div>
+                <div class="user-details">
+                    <div class="user-name">Anonymous User</div>
+                    <div class="user-email">No authentication</div>
+                </div>
+            </div>
+        </div>
+    </aside>
+    <main class="main-content">
+        <section id="dashboard-section" class="section-content">
+            <div class="page-header">
+                <h1 class="page-title">Dashboard</h1>
+                <p class="page-subtitle">Overview of your financial activity</p>
+            </div>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">Total Income</div>
+                    <div class="stat-value" id="total-income">$0.00</div>
+                    <div class="stat-meta">This month</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Total Expenses</div>
+                    <div class="stat-value" id="total-expenses">$0.00</div>
+                    <div class="stat-meta">This month</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Net Balance</div>
+                    <div class="stat-value" id="net-balance">$0.00</div>
+                    <div class="stat-meta">This month</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Transactions</div>
+                    <div class="stat-value" id="transaction-count">0</div>
+                    <div class="stat-meta">This month</div>
+                </div>
+            </div>
+            <div class="content-section">
+                <div class="section-header">
+                    <h2 class="section-title">Recent Activity</h2>
+                    <button onclick="showSection('transactions')" class="btn-ghost">View all →</button>
+                </div>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Description</th>
+                                <th>Category</th>
+                                <th>Date</th>
+                                <th class="text-right">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recent-transactions">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+        <section id="transactions-section" class="section-content hidden">
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title">Transactions</h1>
+                    <p class="page-subtitle">Manage your income and expenses</p>
+                </div>
+                <button onclick="openTransactionModal()" class="btn-primary">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                    New Transaction
+                </button>
+            </div>
+            <div class="content-section">
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Description</th>
+                                <th>Category</th>
+                                <th>Date</th>
+                                <th class="text-right">Amount</th>
+                                <th class="text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="transactions-list">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+        <section id="categories-section" class="section-content hidden">
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title">Categories</h1>
+                    <p class="page-subtitle">Organize your transactions</p>
+                </div>
+                <button onclick="openCategoryModal()" class="btn-primary">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                    New Category
+                </button>
+            </div>
+            <div class="content-section">
+                <div class="categories-grid" id="categories-list">
+                </div>
+            </div>
+        </section>
+        <section id="accounts-section" class="section-content hidden">
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title">Accounts</h1>
+                    <p class="page-subtitle">Your financial accounts (hardcoded for now)</p>
+                </div>
+                <button class="btn-secondary" disabled>Coming Soon</button>
+            </div>
+            <div class="content-section">
+                <div class="accounts-grid">
+                    <div class="account-card">
+                        <div class="account-header">
+                            <div class="account-icon">💳</div>
+                            <div>
+                                <div class="account-name">Chase Checking</div>
+                                <div class="account-type">Checking Account</div>
+                            </div>
+                        </div>
+                        <div class="account-balance">$5,420.50</div>
+                    </div>
+                    <div class="account-card">
+                        <div class="account-header">
+                            <div class="account-icon">💰</div>
+                            <div>
+                                <div class="account-name">Savings Account</div>
+                                <div class="account-type">Savings Account</div>
+                            </div>
+                        </div>
+                        <div class="account-balance">$12,800.00</div>
+                    </div>
+                    <div class="account-card">
+                        <div class="account-header">
+                            <div class="account-icon">💳</div>
+                            <div>
+                                <div class="account-name">Credit Card</div>
+                                <div class="account-type">Credit Card</div>
+                            </div>
+                        </div>
+                        <div class="account-balance text-red-600">-$850.25</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+    <div id="transaction-modal" class="modal">
+        <div class="modal-backdrop" onclick="closeTransactionModal()"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="transaction-modal-title">New Transaction</h3>
+                <button onclick="closeTransactionModal()" class="modal-close">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <form id="transaction-form" class="modal-body">
+                <input type="hidden" id="transaction-id">
+                <div class="form-group">
+                    <label class="form-label">Description</label>
+                    <input type="text" id="transaction-name" class="form-input" placeholder="e.g., Grocery shopping"
+                        required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Amount</label>
+                    <input type="number" id="transaction-amount" class="form-input" placeholder="0.00" step="0.01"
+                        required>
+                    <p class="form-hint">Use negative for expenses, positive for income</p>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Category</label>
+                    <select id="transaction-category" class="form-input">
+                        <option value="">Select a category</option>
+                    </select>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" onclick="closeTransactionModal()" class="btn-secondary">Cancel</button>
+                    <button type="submit" class="btn-primary">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div id="category-modal" class="modal">
+        <div class="modal-backdrop" onclick="closeCategoryModal()"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="category-modal-title">New Category</h3>
+                <button onclick="closeCategoryModal()" class="modal-close">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <form id="category-form" class="modal-body">
+                <input type="hidden" id="category-id">
+                <div class="form-group">
+                    <label class="form-label">Category Name</label>
+                    <input type="text" id="category-name" class="form-input" placeholder="e.g., Groceries" required>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" onclick="closeCategoryModal()" class="btn-secondary">Cancel</button>
+                    <button type="submit" class="btn-primary">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <script src="/static/js/app.js"></script>
+</body>
+
+</html>

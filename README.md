@@ -54,3 +54,11 @@ Money management
 8. Run migrations `psql -U postgres -d finance_manager -f migrations\001_create_tables.sql`
 9. Install Go dependencies `go mod download` and `go mod tidy`
 10. Run the application `go run cmd/api/main.go` and it will start on `http://localhost:8080`
+11. To view the database `psql -h localhost -p 5432 -U postgres -d finance_manager`
+```sql
+\l -- to see the list of all database
+\dt -- to list all table in finance_manager
+\d table_name -- see table structure
+SELECT * FROM table_name;
+\q -exit
+```

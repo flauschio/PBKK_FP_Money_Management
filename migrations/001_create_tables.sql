@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS users (
     refresh_token TEXT,
     access_token TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- category (id, name, created_at, updated_at)
@@ -22,16 +22,16 @@ CREATE TABLE IF NOT EXISTS categories (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- account (id, bank_name, amount, created_at, updated_at)
-CREATE TABLE IF NOT EXISTS scheduled_transaction(
+CREATE TABLE IF NOT EXISTS accounts (
     id SERIAL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    amount DECIMAL(12, 2) NOT NULL,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    bank_name VARCHAR(255) NOT NULL,
+    amount DECIMAL(12, 2) NOT NULL DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- transaction (id, name, category_id, amount, account_id, created_at, updated_at)
@@ -42,40 +42,34 @@ CREATE TABLE IF NOT EXISTS transactions (
     account_id INTEGER,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    -- user_id INTERGER REFERENCES user(id) ON DELETE SET NULL,
-    -- account_id INTERGER REFERENCES scheduled_transaction(id) ON DELETE SET NULL,
-    category_id INTEGER REFERENCES categories(id) ON DELETE SET NULL,
+    category_id INTEGER REFERENCES categories(id) ON DELETE SET NULL
 );
 
 -- budget (id, category_id, amount, criteria (monthly, annual), updated_at)
-CREATE TABLE IF NOT EXISTS budget (
+CREATE TABLE IF NOT EXISTS budgets (
     id SERIAL PRIMARY KEY,
     amount DECIMAL(12, 2) NOT NULL,
-    criteria ENUM('monthly', 'annually') NOT NULL,
+    criteria VARCHAR(50) NOT NULL,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    -- user_id INTERGER REFERENCES user(id) ON DELETE SET NULL,
-    -- account_id INTERGER REFERENCES scheduled_transaction(id) ON DELETE SET NULL,
-    category_id INTEGER REFERENCES categories(id) ON DELETE SET NULL,
+    category_id INTEGER REFERENCES categories(id) ON DELETE SET NULL
 );
 
--- scheduled transaction (id, name, amount, repetition (monthly, anually, 6 months, 3 months), repeat_at, created_at, updated_at)
-CREATE TABLE IF NOT EXISTS scheduled_transaction(
+-- scheduled transaction (id, name, amount, repetition (monthly, annually, 6 months, 3 months), repeat_at, created_at, updated_at)
+CREATE TABLE IF NOT EXISTS scheduled_transactions (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     amount DECIMAL(12, 2) NOT NULL,
-    repetition ENUM('monthly', 'anually', '6 months', '3 months') NOT NULL,
-    repeat_at DATETIME NOT NULL,
+    repetition VARCHAR(50) NOT NULL,
+    repeat_at TIMESTAMP NOT NULL,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    -- user_id INTERGER REFERENCES user(id) ON DELETE SET NULL,
-    -- account_id INTERGER REFERENCES scheduled_transaction(id) ON DELETE SET NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE INDEX idx_transactions_category_id ON transactions(category_id);
 CREATE INDEX idx_transactions_created_at ON transactions(created_at DESC);
 
-INSERT INTO categories (name) 
+INSERT INTO categories (name) VALUES
 ('Food & Dining'),
 ('Transportation'),
 ('Shopping'),

@@ -50,6 +50,20 @@
                 </svg>
                 <span>Accounts</span>
             </a>
+            <a href="#" class="nav-item" data-section="budgets">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                </svg>
+                <span>Budgets</span>
+            </a>
+            <a href="#" class="nav-item" data-section="scheduled">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span>Scheduled</span>
+            </a>
         </nav>
         <div class="sidebar-footer">
             <div class="user-info">
@@ -107,8 +121,7 @@
                                 <th class="text-right">Amount</th>
                             </tr>
                         </thead>
-                        <tbody id="recent-transactions">
-                        </tbody>
+                        <tbody id="recent-transactions"></tbody>
                     </table>
                 </div>
             </div>
@@ -138,8 +151,7 @@
                                 <th class="text-right">Actions</th>
                             </tr>
                         </thead>
-                        <tbody id="transactions-list">
-                        </tbody>
+                        <tbody id="transactions-list"></tbody>
                     </table>
                 </div>
             </div>
@@ -158,8 +170,7 @@
                 </button>
             </div>
             <div class="content-section">
-                <div class="categories-grid" id="categories-list">
-                </div>
+                <div class="categories-grid" id="categories-list"></div>
             </div>
         </section>
         <section id="accounts-section" class="section-content hidden">
@@ -176,8 +187,79 @@
                 </button>
             </div>
             <div class="content-section">
-                <div class="accounts-grid" id="accounts-list">
-                    <!-- Accounts will be rendered here -->
+                <div class="accounts-grid" id="accounts-list"></div>
+            </div>
+        </section>
+        <section id="budgets-section" class="section-content hidden">
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title">Budgets</h1>
+                    <p class="page-subtitle">Track your spending limits</p>
+                </div>
+                <button onclick="openBudgetModal()" class="btn-primary">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                    New Budget
+                </button>
+            </div>
+            <div class="content-section">
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Category</th>
+                                <th>Budget</th>
+                                <th>Spent</th>
+                                <th>Remaining</th>
+                                <th>Progress</th>
+                                <th>Period</th>
+                                <th class="text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="budgets-list"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+        <section id="scheduled-section" class="section-content hidden">
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title">Scheduled Transactions</h1>
+                    <p class="page-subtitle">Manage recurring transactions</p>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <button onclick="processScheduledTransactions()" class="btn-secondary">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                        Process Due
+                    </button>
+                    <button onclick="openScheduledModal()" class="btn-primary">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                        </svg>
+                        New Scheduled
+                    </button>
+                </div>
+            </div>
+            <div class="content-section">
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Description</th>
+                                <th>Amount</th>
+                                <th>Frequency</th>
+                                <th>Next Date</th>
+                                <th>Category</th>
+                                <th>Account</th>
+                                <th class="text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="scheduled-list"></tbody>
+                    </table>
                 </div>
             </div>
         </section>
@@ -255,7 +337,7 @@
         <div class="modal-backdrop" onclick="closeAccountModal()"></div>
         <div class="modal-content">
             <div class="modal-header">
-                <h3 class="modal-title" id="account-modal-title">New Account</h3>
+                <h3 class="modal-title">New Account</h3>
                 <button onclick="closeAccountModal()" class="modal-close">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -264,25 +346,112 @@
                 </button>
             </div>
             <form id="account-form" class="modal-body">
-                <input type="hidden" id="account-id">
                 <div class="form-group">
                     <label class="form-label">Account Name</label>
                     <input type="text" id="account-name" class="form-input" placeholder="e.g., Chase Debit" required>
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Type</label>
-                    <select id="account-type" class="form-input">
-                        <option value="Debit">Debit Card</option>
-                        <option value="Credit">Credit Card</option>
-                        <option value="Other">Other</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Balance</label>
+                    <label class="form-label">Initial Balance</label>
                     <input type="number" id="account-amount" class="form-input" placeholder="0.00" step="0.01" required>
                 </div>
                 <div class="modal-footer">
                     <button type="button" onclick="closeAccountModal()" class="btn-secondary">Cancel</button>
+                    <button type="submit" class="btn-primary">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div id="budget-modal" class="modal">
+        <div class="modal-backdrop" onclick="closeBudgetModal()"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="budget-modal-title">New Budget</h3>
+                <button onclick="closeBudgetModal()" class="modal-close">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <form id="budget-form" class="modal-body">
+                <input type="hidden" id="budget-id">
+                <div class="form-group">
+                    <label class="form-label">Category</label>
+                    <select id="budget-category" class="form-input" required>
+                        <option value="">Select a category</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Budget Amount</label>
+                    <input type="number" id="budget-amount" class="form-input" placeholder="1000.00" step="0.01"
+                        required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Period</label>
+                    <select id="budget-criteria" class="form-input" required>
+                        <option value="monthly">Monthly</option>
+                        <option value="annual">Annual</option>
+                    </select>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" onclick="closeBudgetModal()" class="btn-secondary">Cancel</button>
+                    <button type="submit" class="btn-primary">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div id="scheduled-modal" class="modal">
+        <div class="modal-backdrop" onclick="closeScheduledModal()"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="scheduled-modal-title">New Scheduled Transaction</h3>
+                <button onclick="closeScheduledModal()" class="modal-close">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <form id="scheduled-form" class="modal-body">
+                <input type="hidden" id="scheduled-id">
+                <div class="form-group">
+                    <label class="form-label">Description</label>
+                    <input type="text" id="scheduled-name" class="form-input" placeholder="e.g., Netflix Subscription"
+                        required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Amount</label>
+                    <input type="number" id="scheduled-amount" class="form-input" placeholder="-9.99" step="0.01"
+                        required>
+                    <p class="form-hint">Use negative for expenses, positive for income</p>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Frequency</label>
+                    <select id="scheduled-repetition" class="form-input" required>
+                        <option value="monthly">Monthly</option>
+                        <option value="3 months">Every 3 Months</option>
+                        <option value="6 months">Every 6 Months</option>
+                        <option value="annually">Annually</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Next Due Date</label>
+                    <input type="date" id="scheduled-repeat-at" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Category (Optional)</label>
+                    <select id="scheduled-category" class="form-input">
+                        <option value="">None</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Account (Optional)</label>
+                    <select id="scheduled-account" class="form-input">
+                        <option value="">None</option>
+                    </select>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" onclick="closeScheduledModal()" class="btn-secondary">Cancel</button>
                     <button type="submit" class="btn-primary">Save</button>
                 </div>
             </form>

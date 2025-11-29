@@ -21,6 +21,7 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE TABLE IF NOT EXISTS categories (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -30,6 +31,7 @@ CREATE TABLE IF NOT EXISTS accounts (
     id SERIAL PRIMARY KEY,
     bank_name VARCHAR(255) NOT NULL,
     amount DECIMAL(12, 2) NOT NULL DEFAULT 0,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -39,6 +41,7 @@ CREATE TABLE IF NOT EXISTS transactions (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     amount DECIMAL(12, 2) NOT NULL,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
     category_id INTEGER REFERENCES categories(id) ON DELETE SET NULL,
     account_id INTEGER REFERENCES accounts(id) ON DELETE SET NULL,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -50,6 +53,7 @@ CREATE TABLE IF NOT EXISTS budgets (
     id SERIAL PRIMARY KEY,
     amount DECIMAL(12, 2) NOT NULL,
     criteria VARCHAR(50) NOT NULL,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     category_id INTEGER REFERENCES categories(id) ON DELETE SET NULL
@@ -62,6 +66,7 @@ CREATE TABLE IF NOT EXISTS scheduled_transactions (
     amount DECIMAL(12, 2) NOT NULL,
     repetition VARCHAR(50) NOT NULL,
     repeat_at TIMESTAMP NOT NULL,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
     category_id INTEGER REFERENCES categories(id) ON DELETE SET NULL,
     account_id INTEGER REFERENCES accounts(id) ON DELETE SET NULL,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -70,6 +75,10 @@ CREATE TABLE IF NOT EXISTS scheduled_transactions (
 
 CREATE INDEX idx_transactions_category_id ON transactions(category_id);
 CREATE INDEX idx_transactions_created_at ON transactions(created_at DESC);
+CREATE INDEX idx_categories_user_id ON categories(user_id);
+CREATE INDEX idx_accounts_user_id ON accounts(user_id);
+CREATE INDEX idx_budgets_user_id ON budgets(user_id);
+CREATE INDEX idx_scheduled_user_id ON scheduled_transactions(user_id);
 
 -- INSERT INTO categories (name) VALUES
 -- ('Food & Dining'),

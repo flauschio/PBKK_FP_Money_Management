@@ -63,6 +63,10 @@ type ScheduledTransaction struct {
 	Amount     float64   `gorm:"type:decimal(12,2);not null" json:"amount"`
 	Repetition string    `gorm:"size:50;not null" json:"repetition"`
 	RepeatAt   time.Time `gorm:"not null" json:"repeat_at"`
+	CategoryID *uint     `gorm:"index" json:"category_id"`
+	Category   *Category `gorm:"foreignKey:CategoryID" json:"category,omitempty"`
+	AccountID  *uint     `gorm:"index" json:"account_id"`
+	Account    *Account  `gorm:"foreignKey:AccountID" json:"account,omitempty"`
 	CreatedAt  time.Time `json:"created_at"`
 	UpdatedAt  time.Time `json:"updated_at"`
 }
@@ -74,4 +78,46 @@ type TransactionCreate struct {
 	Amount     float64 `json:"amount" binding:"required"`
 	CategoryID *uint   `json:"category_id"`
 	AccountID  *uint   `json:"account_id"`
+}
+
+type BudgetCreate struct {
+	CategoryID uint    `json:"category_id" binding:"required"`
+	Amount     float64 `json:"amount" binding:"required"`
+	Criteria   string  `json:"criteria" binding:"required"`
+}
+
+type BudgetResponse struct {
+	ID           uint      `json:"id"`
+	CategoryID   uint      `json:"category_id"`
+	CategoryName string    `json:"category_name,omitempty"`
+	Amount       float64   `json:"amount"`
+	Criteria     string    `json:"criteria"`
+	Spent        float64   `json:"spent"`
+	Remaining    float64   `json:"remaining"`
+	Percentage   float64   `json:"percentage"`
+	CreatedAt    time.Time `json:"created_at"`
+	UpdatedAt    time.Time `json:"updated_at"`
+}
+
+type ScheduledTransactionCreate struct {
+	Name       string    `json:"name" binding:"required"`
+	Amount     float64   `json:"amount" binding:"required"`
+	Repetition string    `json:"repetition" binding:"required"`
+	RepeatAt   time.Time `json:"repeat_at" binding:"required"`
+	CategoryID *uint     `json:"category_id"`
+	AccountID  *uint     `json:"account_id"`
+}
+
+type ScheduledTransactionResponse struct {
+	ID           uint      `json:"id"`
+	Name         string    `json:"name"`
+	Amount       float64   `json:"amount"`
+	Repetition   string    `json:"repetition"`
+	RepeatAt     time.Time `json:"repeat_at"`
+	CategoryID   *uint     `json:"category_id"`
+	CategoryName string    `json:"category_name,omitempty"`
+	AccountID    *uint     `json:"account_id"`
+	AccountName  string    `json:"account_name,omitempty"`
+	CreatedAt    time.Time `json:"created_at"`
+	UpdatedAt    time.Time `json:"updated_at"`
 }

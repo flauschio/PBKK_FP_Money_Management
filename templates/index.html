@@ -59,6 +59,9 @@
                     <div class="user-email">No authentication</div>
                 </div>
             </div>
+            <div style="margin-top:10px; display:flex; justify-content:center;">
+                <button id="logout-btn" class="btn-secondary">Logout</button>
+            </div>
         </div>
     </aside>
     <main class="main-content">
@@ -163,42 +166,18 @@
             <div class="page-header">
                 <div>
                     <h1 class="page-title">Accounts</h1>
-                    <p class="page-subtitle">Your financial accounts (hardcoded for now)</p>
+                    <p class="page-subtitle">Your financial accounts</p>
                 </div>
-                <button class="btn-secondary" disabled>Coming Soon</button>
+                <button onclick="openAccountModal()" class="btn-primary">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                    New Account
+                </button>
             </div>
             <div class="content-section">
-                <div class="accounts-grid">
-                    <div class="account-card">
-                        <div class="account-header">
-                            <div class="account-icon">💳</div>
-                            <div>
-                                <div class="account-name">Chase Checking</div>
-                                <div class="account-type">Checking Account</div>
-                            </div>
-                        </div>
-                        <div class="account-balance">$5,420.50</div>
-                    </div>
-                    <div class="account-card">
-                        <div class="account-header">
-                            <div class="account-icon">💰</div>
-                            <div>
-                                <div class="account-name">Savings Account</div>
-                                <div class="account-type">Savings Account</div>
-                            </div>
-                        </div>
-                        <div class="account-balance">$12,800.00</div>
-                    </div>
-                    <div class="account-card">
-                        <div class="account-header">
-                            <div class="account-icon">💳</div>
-                            <div>
-                                <div class="account-name">Credit Card</div>
-                                <div class="account-type">Credit Card</div>
-                            </div>
-                        </div>
-                        <div class="account-balance text-red-600">-$850.25</div>
-                    </div>
+                <div class="accounts-grid" id="accounts-list">
+                    <!-- Accounts will be rendered here -->
                 </div>
             </div>
         </section>
@@ -234,6 +213,12 @@
                         <option value="">Select a category</option>
                     </select>
                 </div>
+                <div class="form-group">
+                    <label class="form-label">Account</label>
+                    <select id="transaction-account" class="form-input">
+                        <option value="">Select an account</option>
+                    </select>
+                </div>
                 <div class="modal-footer">
                     <button type="button" onclick="closeTransactionModal()" class="btn-secondary">Cancel</button>
                     <button type="submit" class="btn-primary">Save</button>
@@ -261,6 +246,43 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" onclick="closeCategoryModal()" class="btn-secondary">Cancel</button>
+                    <button type="submit" class="btn-primary">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div id="account-modal" class="modal">
+        <div class="modal-backdrop" onclick="closeAccountModal()"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="account-modal-title">New Account</h3>
+                <button onclick="closeAccountModal()" class="modal-close">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <form id="account-form" class="modal-body">
+                <input type="hidden" id="account-id">
+                <div class="form-group">
+                    <label class="form-label">Account Name</label>
+                    <input type="text" id="account-name" class="form-input" placeholder="e.g., Chase Debit" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Type</label>
+                    <select id="account-type" class="form-input">
+                        <option value="Debit">Debit Card</option>
+                        <option value="Credit">Credit Card</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Balance</label>
+                    <input type="number" id="account-amount" class="form-input" placeholder="0.00" step="0.01" required>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" onclick="closeAccountModal()" class="btn-secondary">Cancel</button>
                     <button type="submit" class="btn-primary">Save</button>
                 </div>
             </form>

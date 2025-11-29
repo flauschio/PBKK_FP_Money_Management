@@ -37,8 +37,19 @@ func main() {
 	router.GET("/", func(c *gin.Context) {
 		c.File("./templates/index.html")
 	})
+
+	// Serve auth pages
+	router.GET("/register", func(c *gin.Context) {
+		c.File("./templates/register.html")
+	})
+	router.GET("/login", func(c *gin.Context) {
+		c.File("./templates/login.html")
+	})
 	api := router.Group("/api")
 	{
+		// Auth routes
+		api.POST("/register", handler.Register)
+		api.POST("/login", handler.Login)
 		api.GET("/categories", handler.GetCategories)
 		api.POST("/categories", handler.CreateCategory)
 		api.PUT("/categories/:id", handler.UpdateCategory)
@@ -49,6 +60,8 @@ func main() {
 		api.DELETE("/transactions/:id", handler.DeleteTransaction)
 		api.GET("/dashboard/stats", handler.GetDashboardStats)
 		api.GET("/accounts", handler.GetAccounts)
+		api.POST("/accounts", handler.CreateAccount)
+		api.DELETE("/accounts/:id", handler.DeleteAccount)
 	}
 	log.Printf("Server starting on port %s...", port)
 	log.Printf("Open http://localhost:%s in your browser", port)

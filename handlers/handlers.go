@@ -2,11 +2,14 @@ package handlers
 
 import (
 	"net/http"
+	"os"
 	"time"
 
 	"finance-manager/models"
 
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
+	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
@@ -112,7 +115,22 @@ func (h *Handler) CreateTransaction(c *gin.Context) {
 		CategoryID: req.CategoryID,
 		AccountID:  req.AccountID,
 	}
-	if err := h.DB.Create(&transaction).Error; err != nil {
+	// create transaction and update account balance atomically
+	err := h.DB.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Create(&transaction).Error; err != nil {
+			return err
+		}
+		if transaction.AccountID != nil {
+			// apply the transaction amount to the selected account
+			if err := tx.Model(&models.Account{}).
+				Where("id = ?", *transaction.AccountID).
+				UpdateColumn("amount", gorm.Expr("amount + ?", transaction.Amount)).Error; err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -149,11 +167,61 @@ func (h *Handler) UpdateTransaction(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	transaction.Name = req.Name
-	transaction.Amount = req.Amount
-	transaction.CategoryID = req.CategoryID
-	transaction.AccountID = req.AccountID
-	if err := h.DB.Save(&transaction).Error; err != nil {
+	oldAmount := transaction.Amount
+	var oldAccountID *uint
+	if transaction.AccountID != nil {
+		v := *transaction.AccountID
+		oldAccountID = &v
+	}
+	newAmount := req.Amount
+	var newAccountID *uint
+	if req.AccountID != nil {
+		v := *req.AccountID
+		newAccountID = &v
+	}
+
+	// perform update and adjust account balances atomically
+	err := h.DB.Transaction(func(tx *gorm.DB) error {
+		// adjust balances
+		if oldAccountID != nil && newAccountID != nil && *oldAccountID == *newAccountID {
+			// same account: apply delta
+			delta := newAmount - oldAmount
+			if delta != 0 {
+				if err := tx.Model(&models.Account{}).
+					Where("id = ?", *oldAccountID).
+					UpdateColumn("amount", gorm.Expr("amount + ?", delta)).Error; err != nil {
+					return err
+				}
+			}
+		} else {
+			// different accounts: revert old and apply new
+			if oldAccountID != nil {
+				if err := tx.Model(&models.Account{}).
+					Where("id = ?", *oldAccountID).
+					UpdateColumn("amount", gorm.Expr("amount - ?", oldAmount)).Error; err != nil {
+					return err
+				}
+			}
+			if newAccountID != nil {
+				if err := tx.Model(&models.Account{}).
+					Where("id = ?", *newAccountID).
+					UpdateColumn("amount", gorm.Expr("amount + ?", newAmount)).Error; err != nil {
+					return err
+				}
+			}
+		}
+
+		// update transaction record
+		transaction.Name = req.Name
+		transaction.Amount = newAmount
+		transaction.CategoryID = req.CategoryID
+		transaction.AccountID = req.AccountID
+		if err := tx.Save(&transaction).Error; err != nil {
+			return err
+		}
+		return nil
+	})
+	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -176,13 +244,31 @@ func (h *Handler) UpdateTransaction(c *gin.Context) {
 }
 func (h *Handler) DeleteTransaction(c *gin.Context) {
 	id := c.Param("id")
-	result := h.DB.Delete(&models.Transaction{}, id)
-	if result.Error != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
+	// load transaction first to know amount/account
+	var transaction models.Transaction
+	if err := h.DB.First(&transaction, id).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Transaction not found"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	if result.RowsAffected == 0 {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Transaction not found"})
+	err := h.DB.Transaction(func(tx *gorm.DB) error {
+		if transaction.AccountID != nil {
+			if err := tx.Model(&models.Account{}).
+				Where("id = ?", *transaction.AccountID).
+				UpdateColumn("amount", gorm.Expr("amount - ?", transaction.Amount)).Error; err != nil {
+				return err
+			}
+		}
+		if err := tx.Delete(&models.Transaction{}, transaction.ID).Error; err != nil {
+			return err
+		}
+		return nil
+	})
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 	c.Status(http.StatusNoContent)
@@ -230,4 +316,115 @@ func (h *Handler) GetAccounts(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, accounts)
+}
+
+func (h *Handler) CreateAccount(c *gin.Context) {
+	var req struct {
+		BankName string  `json:"bank_name" binding:"required"`
+		Amount   float64 `json:"amount" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	account := models.Account{
+		BankName: req.BankName,
+		Amount:   req.Amount,
+	}
+	if err := h.DB.Create(&account).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusCreated, account)
+}
+
+func (h *Handler) DeleteAccount(c *gin.Context) {
+	id := c.Param("id")
+	result := h.DB.Delete(&models.Account{}, id)
+	if result.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
+		return
+	}
+	if result.RowsAffected == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Account not found"})
+		return
+	}
+	c.Status(http.StatusNoContent)
+}
+
+// Register handles user registration: validates input, hashes password, and stores the user.
+func (h *Handler) Register(c *gin.Context) {
+	var req struct {
+		Name     string `json:"name" binding:"required"`
+		Email    string `json:"email" binding:"required,email"`
+		Password string `json:"password" binding:"required,min=6"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	var existing models.User
+	if err := h.DB.Where("email = ?", req.Email).First(&existing).Error; err == nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "email already registered"})
+		return
+	} else if err != gorm.ErrRecordNotFound {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	hashed, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to hash password"})
+		return
+	}
+	user := models.User{
+		Name:     req.Name,
+		Email:    req.Email,
+		Password: string(hashed),
+	}
+	if err := h.DB.Create(&user).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusCreated, gin.H{"user": user})
+}
+
+// Login verifies credentials and returns a signed JWT access token.
+func (h *Handler) Login(c *gin.Context) {
+	var req struct {
+		Email    string `json:"email" binding:"required,email"`
+		Password string `json:"password" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	var user models.User
+	if err := h.DB.Where("email = ?", req.Email).First(&user).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid credentials"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password)); err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid credentials"})
+		return
+	}
+	secret := os.Getenv("JWT_SECRET")
+	if secret == "" {
+		secret = "replace-with-secure-secret"
+	}
+	claims := jwt.MapClaims{
+		"user_id": user.ID,
+		"email":   user.Email,
+		"exp":     time.Now().Add(72 * time.Hour).Unix(),
+	}
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	tokenString, err := token.SignedString([]byte(secret))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to sign token"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"access_token": tokenString, "user": user})
 }

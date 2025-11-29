@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Login - Finance Manager</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="/static/css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body class="bg-white text-gray-900">
+  <main class="main-content" style="margin-left:0;">
+    <section class="section-content">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">Sign in</h1>
+          <p class="page-subtitle">Sign in to continue to your dashboard</p>
+        </div>
+      </div>
+      <div class="content-section">
+        <div style="padding:28px; display:flex; justify-content:center;">
+          <div style="width:100%; max-width:520px;">
+            <div class="auth-card" style="box-shadow:none; border-radius:8px; padding:20px;">
+              <form id="login-form">
+                <div class="form-group">
+                  <label class="form-label">Email</label>
+                  <input class="form-input" type="email" id="email" required placeholder="you@example.com" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Password</label>
+                  <input class="form-input" type="password" id="password" required placeholder="Your password" />
+                </div>
+                <div class="form-group">
+                  <button class="btn-primary" type="submit">Sign in</button>
+                </div>
+                <p id="msg" class="msg"></p>
+              </form>
+              <div style="margin-top:10px; text-align:right;">
+                <a class="link-muted" href="/register">Don't have an account? Create one</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+  <script src="/static/js/login.js"></script>
+</body>
+
+</html>

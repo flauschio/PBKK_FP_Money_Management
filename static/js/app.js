@@ -1,11 +1,52 @@
 const API_BASE = window.location.origin;
 let categories = [];
 let transactions = [];
+let accounts = [];
 document.addEventListener('DOMContentLoaded', () => {
     setupNavigation();
+    setupLogout();
+    updateUserUI();
     loadData();
     setupForms();
 });
+
+function updateUserUI() {
+    const userNameEl = document.querySelector('.user-name');
+    const userEmailEl = document.querySelector('.user-email');
+    const logoutBtn = document.getElementById('logout-btn');
+    let user = null;
+    try {
+        const raw = localStorage.getItem('user');
+        if (raw) user = JSON.parse(raw);
+    } catch (err) {
+        user = null;
+    }
+    if (user && user.name) {
+        if (userNameEl) userNameEl.textContent = user.name;
+        if (userEmailEl) userEmailEl.textContent = user.email || '';
+        if (logoutBtn) logoutBtn.style.display = '';
+    } else {
+        if (userNameEl) userNameEl.textContent = 'Anonymous User';
+        if (userEmailEl) userEmailEl.textContent = 'No authentication';
+        if (logoutBtn) logoutBtn.style.display = 'none';
+    }
+}
+
+function setupLogout() {
+    const btn = document.getElementById('logout-btn');
+    if (!btn) return;
+    btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        try {
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('refresh_token');
+        } catch (err) {
+            // ignore
+        }
+        // redirect to login page
+        window.location = '/login';
+    });
+}
 function setupNavigation() {
     document.querySelectorAll('.nav-item').forEach(link => {
         link.addEventListener('click', (e) => {
@@ -37,11 +78,111 @@ async function loadData() {
         await Promise.all([
             loadCategories(),
             loadTransactions(),
-            loadDashboardStats()
+            loadDashboardStats(),
+            loadAccounts()
         ]);
     } catch (error) {
         console.error('Error loading data:', error);
         showNotification('Failed to load data', 'error');
+    }
+}
+async function loadAccounts() {
+    try {
+        const response = await fetch(`${API_BASE}/api/accounts`);
+        if (!response.ok) throw new Error('Failed to fetch accounts');
+        accounts = await response.json() || [];
+        renderAccountsList(accounts);
+        updateAccountDropdown();
+    } catch (error) {
+        console.error('Error loading accounts:', error);
+        showNotification('Failed to load accounts', 'error');
+    }
+}
+
+function updateAccountDropdown() {
+    const select = document.getElementById('transaction-account');
+    if (!select) return;
+    select.innerHTML = '<option value="">Select an account</option>';
+    accounts.forEach(acc => {
+        const option = document.createElement('option');
+        option.value = acc.id;
+        option.textContent = `${acc.bank_name} (${acc.amount < 0 ? '-' : ''}$${Math.abs(acc.amount).toFixed(2)})`;
+        select.appendChild(option);
+    });
+}
+
+function renderAccountsList(accounts) {
+    const container = document.getElementById('accounts-list');
+    if (!accounts || accounts.length === 0) {
+        container.innerHTML = '<div style="padding: 40px; text-align: center; color: var(--text-secondary);">No accounts yet. Create one to get started!</div>';
+        return;
+    }
+    container.innerHTML = accounts.map(acc => `
+        <div class="account-card">
+            <div class="account-header">
+                <div class="account-icon">${acc.bank_name && acc.bank_name.toLowerCase().includes('credit') ? '💳' : '💰'}</div>
+                <div>
+                    <div class="account-name">${escapeHtml(acc.bank_name)}</nobr></div>
+                    <div class="account-type">${acc.id ? 'Account' : ''}</div>
+                </div>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div class="account-balance ${acc.amount < 0 ? 'text-red-600' : ''}">${acc.amount < 0 ? '-' : ''}$${Math.abs(acc.amount).toFixed(2)}</div>
+                <div>
+                    <button onclick="deleteAccount(${acc.id})" class="btn-icon" title="Delete">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+function openAccountModal() {
+    document.getElementById('account-modal').classList.add('show');
+}
+function closeAccountModal() {
+    document.getElementById('account-modal').classList.remove('show');
+    document.getElementById('account-form').reset();
+    document.getElementById('account-id').value = '';
+    document.getElementById('account-modal-title').textContent = 'New Account';
+}
+
+async function saveAccount(e) {
+    e.preventDefault();
+    const id = document.getElementById('account-id').value;
+    const name = document.getElementById('account-name').value.trim();
+    const amount = parseFloat(document.getElementById('account-amount').value);
+    if (!name) { showNotification('Please enter an account name', 'error'); return; }
+    if (isNaN(amount)) { showNotification('Please enter a valid amount', 'error'); return; }
+    try {
+        const response = await fetch(`${API_BASE}/api/accounts`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ bank_name: name, amount })
+        });
+        if (!response.ok) throw new Error('Failed to save account');
+        await loadAccounts();
+        closeAccountModal();
+        showNotification('Account created successfully');
+    } catch (error) {
+        console.error('Error saving account:', error);
+        showNotification('Failed to save account', 'error');
+    }
+}
+
+async function deleteAccount(id) {
+    if (!confirm('Are you sure you want to delete this account?')) return;
+    try {
+        const response = await fetch(`${API_BASE}/api/accounts/${id}`, { method: 'DELETE' });
+        if (!response.ok) throw new Error('Failed to delete account');
+        await loadAccounts();
+        showNotification('Account deleted successfully');
+    } catch (error) {
+        console.error('Error deleting account:', error);
+        showNotification('Failed to delete account', 'error');
     }
 }
 async function loadCategories() {
@@ -206,6 +347,7 @@ async function saveTransaction(e) {
     const name = document.getElementById('transaction-name').value.trim();
     const amount = parseFloat(document.getElementById('transaction-amount').value);
     const categoryId = document.getElementById('transaction-category').value;
+    const accountId = document.getElementById('transaction-account') ? document.getElementById('transaction-account').value : '';
     if (!name) {
         showNotification('Please enter a transaction name', 'error');
         return;
@@ -221,7 +363,7 @@ async function saveTransaction(e) {
             name,
             amount,
             category_id: categoryId ? parseInt(categoryId) : null,
-            account_id: null
+            account_id: accountId ? parseInt(accountId) : null
         };
         const response = await fetch(url, {
             method,
@@ -260,6 +402,8 @@ function editTransaction(id) {
     document.getElementById('transaction-name').value = transaction.name;
     document.getElementById('transaction-amount').value = transaction.amount;
     document.getElementById('transaction-category').value = transaction.category_id || '';
+    const accSelect = document.getElementById('transaction-account');
+    if (accSelect) accSelect.value = transaction.account_id || '';
     document.getElementById('transaction-modal-title').textContent = 'Edit Transaction';
     openTransactionModal();
 }
@@ -297,6 +441,8 @@ function closeCategoryModal() {
 function setupForms() {
     document.getElementById('transaction-form').addEventListener('submit', saveTransaction);
     document.getElementById('category-form').addEventListener('submit', saveCategory);
+    const accountForm = document.getElementById('account-form');
+    if (accountForm) accountForm.addEventListener('submit', saveAccount);
 }
 function escapeHtml(text) {
     const map = {

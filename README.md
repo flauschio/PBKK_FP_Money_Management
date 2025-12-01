@@ -45,15 +45,15 @@ Money management
 
 ## Task Distribution
 1. Iffa Amalia Sabrina
-  - Database Model using PostgreSQL
-  - Category CRUD
-  - Scheduled Transaction CRUD
-  - Budget CRUD
+    - Database Model using PostgreSQL
+    - Category CRUD
+    - Scheduled Transaction CRUD
+    - Budget CRUD
 2. Danendra Ramadhan
-  - Database Implementation using Gorm
-  - Authentication (Login, Register, Logout) using JWT
-  - Transaction CRUD
-  - Account (Create, View, Delete)
+    - Database Implementation using Gorm
+    - Authentication (Login, Register, Logout) using JWT
+    - Transaction CRUD
+    - Account (Create, View, Delete)
 
 ## Run Instruction (in Windows)
 1. Download PostgreSQL

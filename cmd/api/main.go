@@ -140,6 +140,8 @@ func main() {
 	{
 		api.POST("/register", handler.Register)
 		api.POST("/login", handler.Login)
+		api.POST("/refresh", handler.Refresh)
+		api.POST("/logout", handler.Logout)
 	}
 
 	protected := api.Group("", authMiddleware(secret))
@@ -281,13 +283,127 @@ func (h *Handler) Login(c *gin.Context) {
 		return
 	}
 	secret := getEnv("JWT_SECRET", "replace-with-secure-secret")
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+	accessClaims := jwt.MapClaims{
 		"user_id": user.ID,
 		"email":   user.Email,
+		"type":    "access",
 		"exp":     time.Now().Add(72 * time.Hour).Unix(),
+	}
+	accessToken := jwt.NewWithClaims(jwt.SigningMethodHS256, accessClaims)
+	accessString, err := accessToken.SignedString([]byte(secret))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to sign access token"})
+		return
+	}
+
+	refreshClaims := jwt.MapClaims{
+		"user_id": user.ID,
+		"type":    "refresh",
+		"exp":     time.Now().Add(7 * 24 * time.Hour).Unix(),
+	}
+	refreshToken := jwt.NewWithClaims(jwt.SigningMethodHS256, refreshClaims)
+	refreshString, err := refreshToken.SignedString([]byte(secret))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to sign refresh token"})
+		return
+	}
+	user.RefreshToken = refreshString
+	if err := h.DB.Save(&user).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to save refresh token"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"access_token": accessString, "refresh_token": refreshString, "user": user})
+}
+func (h *Handler) Refresh(c *gin.Context) {
+	var req struct {
+		RefreshToken string `json:"refresh_token" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	secret := getEnv("JWT_SECRET", "replace-with-secure-secret")
+	token, err := jwt.Parse(req.RefreshToken, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method")
+		}
+		return []byte(secret), nil
 	})
-	tokenString, _ := token.SignedString([]byte(secret))
-	c.JSON(http.StatusOK, gin.H{"access_token": tokenString, "user": user})
+	if err != nil || !token.Valid {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid refresh token"})
+		return
+	}
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid token claims"})
+		return
+	}
+	if claims["type"] != "refresh" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid token type"})
+		return
+	}
+	uidFloat, ok := claims["user_id"].(float64)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid user id in token"})
+		return
+	}
+	userID := uint(uidFloat)
+	var user User
+	if err := h.DB.First(&user, userID).Error; err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "user not found"})
+		return
+	}
+	if user.RefreshToken == "" || user.RefreshToken != req.RefreshToken {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "refresh token revoked"})
+		return
+	}
+	accessClaims := jwt.MapClaims{
+		"user_id": user.ID,
+		"email":   user.Email,
+		"type":    "access",
+		"exp":     time.Now().Add(72 * time.Hour).Unix(),
+	}
+	accessToken := jwt.NewWithClaims(jwt.SigningMethodHS256, accessClaims)
+	accessString, err := accessToken.SignedString([]byte(secret))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to sign access token"})
+		return
+	}
+	refreshClaims := jwt.MapClaims{
+		"user_id": user.ID,
+		"type":    "refresh",
+		"exp":     time.Now().Add(7 * 24 * time.Hour).Unix(),
+	}
+	refreshToken := jwt.NewWithClaims(jwt.SigningMethodHS256, refreshClaims)
+	refreshString, err := refreshToken.SignedString([]byte(secret))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to sign refresh token"})
+		return
+	}
+	user.RefreshToken = refreshString
+	if err := h.DB.Save(&user).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to save refresh token"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"access_token": accessString, "refresh_token": refreshString})
+}
+func (h *Handler) Logout(c *gin.Context) {
+	var req struct {
+		RefreshToken string `json:"refresh_token" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	var user User
+	if err := h.DB.Where("refresh_token = ?", req.RefreshToken).First(&user).Error; err != nil {
+		// even if not found, return success to avoid token probing
+		c.JSON(http.StatusOK, gin.H{"ok": true})
+		return
+	}
+	user.RefreshToken = ""
+	h.DB.Save(&user)
+	c.JSON(http.StatusOK, gin.H{"ok": true})
 }
 func (h *Handler) GetCategories(c *gin.Context) {
 	userID := c.GetUint("user_id")

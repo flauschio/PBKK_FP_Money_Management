@@ -51,7 +51,17 @@ function setupLogout() {
     if (!btn) return;
     btn.addEventListener('click', (e) => {
         e.preventDefault();
+        const refresh = localStorage.getItem('refresh_token');
+        // call server to revoke refresh token
+        if (refresh) {
+            fetch('/api/logout', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ refresh_token: refresh })
+            }).catch(() => {});
+        }
         localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
         localStorage.removeItem('user');
         window.location = '/login';
     });

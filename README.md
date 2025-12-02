@@ -34,6 +34,9 @@
   </table>
 </div>
 
+## Demo Video Link
+https://youtu.be/1VbauxvH98o
+
 On behalf of:
 
 **Agus Budi Raharjo, S.Kom., M.Kom., Ph.D.**
@@ -76,8 +79,6 @@ The project that we created for the final project is a finance or money manageme
 ```sql
 \l -- to see the list of all database
 
-### Demo video link
-https://youtu.be/1VbauxvH98o
 \dt -- to list all table in finance_manager
 \d table_name -- see table structure
 SELECT * FROM table_name;

@@ -34,14 +34,14 @@
   </table>
 </div>
 
-## Demo Video Link
-https://youtu.be/1VbauxvH98o
-
 On behalf of:
 
 **Agus Budi Raharjo, S.Kom., M.Kom., Ph.D.**
 
 ---
+
+## Demo Video Link
+https://youtu.be/1VbauxvH98o
 
 ## Project Overview
 The project that we created for the final project is a finance or money management web application. This web application has several features such as create, edit, delete, view the category, transactions, and budget. Not only that, users can also add new account (debit card or wallet) and delete it.

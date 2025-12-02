@@ -141,7 +141,7 @@ function renderAccountsList(accountsData) {
                     <div class="account-name">${account.bank_name}</div>
                 </div>
             </div>
-            <div class="account-balance">$${account.amount.toFixed(2)}</div>
+            <div class="account-balance">Rp${account.amount.toFixed(2)}</div>
             <div style="margin-top:12px; display:flex; gap:8px;">
                 <button onclick="deleteAccount(${account.id})" class="btn-icon delete">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -286,7 +286,7 @@ function renderRecentTransactions() {
             <td>${t.category?.name || 'Uncategorized'}</td>
             <td>${new Date(t.created_at).toLocaleDateString()}</td>
             <td class="text-right ${t.amount >= 0 ? 'text-green-600' : 'text-red-600'}">
-                ${t.amount >= 0 ? '+' : ''}$${Math.abs(t.amount).toFixed(2)}
+                ${t.amount >= 0 ? '+' : ''}Rp${Math.abs(t.amount).toFixed(2)}
             </td>
         </tr>
     `).join('');
@@ -304,7 +304,7 @@ function renderTransactionsList() {
             <td>${t.category?.name || 'Uncategorized'}</td>
             <td>${new Date(t.created_at).toLocaleDateString()}</td>
             <td class="text-right ${t.amount >= 0 ? 'text-green-600' : 'text-red-600'}">
-                ${t.amount >= 0 ? '+' : ''}$${Math.abs(t.amount).toFixed(2)}
+                ${t.amount >= 0 ? '+' : ''}Rp${Math.abs(t.amount).toFixed(2)}
             </td>
             <td class="text-right">
                 <button onclick="editTransaction(${t.id})" class="btn-icon">
@@ -372,9 +372,9 @@ function renderBudgetsList() {
         return `
         <tr>
             <td>${categoryName}</td>
-            <td>$${b.amount.toFixed(2)}</td>
-            <td class="text-red-600">$${b.spent.toFixed(2)}</td>
-            <td class="${b.remaining >= 0 ? 'text-green-600' : 'text-red-600'}">$${b.remaining.toFixed(2)}</td>
+            <td>Rp${b.amount.toFixed(2)}</td>
+            <td class="text-red-600">Rp${b.spent.toFixed(2)}</td>
+            <td class="${b.remaining >= 0 ? 'text-green-600' : 'text-red-600'}">Rp${b.remaining.toFixed(2)}</td>
             <td>
                 <div style="display: flex; align-items: center; gap: 8px;">
                     <div style="flex: 1; height: 8px; background: var(--bg-tertiary); border-radius: 4px; overflow: hidden;">
@@ -450,7 +450,7 @@ function renderScheduledTransactionsList() {
         <tr>
             <td>${st.name}</td>
             <td class="${st.amount >= 0 ? 'text-green-600' : 'text-red-600'}">
-                ${st.amount >= 0 ? '+' : ''}$${Math.abs(st.amount).toFixed(2)}
+                ${st.amount >= 0 ? '+' : ''}Rp${Math.abs(st.amount).toFixed(2)}
             </td>
             <td style="text-transform: capitalize;">${st.repetition}</td>
             <td>${nextDate}</td>
@@ -521,9 +521,9 @@ async function loadDashboardStats() {
         });
         if (!response.ok) throw new Error('Failed to fetch stats');
         const stats = await response.json();
-        document.getElementById('total-income').textContent = `$${stats.total_income.toFixed(2)}`;
-        document.getElementById('total-expenses').textContent = `$${stats.total_expenses.toFixed(2)}`;
-        document.getElementById('net-balance').textContent = `$${stats.balance.toFixed(2)}`;
+        document.getElementById('total-income').textContent = `Rp${stats.total_income.toFixed(2)}`;
+        document.getElementById('total-expenses').textContent = `Rp${stats.total_expenses.toFixed(2)}`;
+        document.getElementById('net-balance').textContent = `Rp${stats.balance.toFixed(2)}`;
         document.getElementById('transaction-count').textContent = stats.transaction_count;
     } catch (error) {
         console.error('Error loading dashboard stats:', error);
@@ -573,7 +573,7 @@ async function handleTransactionSubmit(e) {
             });
             const budgetResult = await budgetCheck.json();
             if (budgetResult.exceeded) {
-                const confirmMsg = `⚠️ WARNING: Budget Exceeded!\n\nBudget: $${budgetResult.budget.toFixed(2)}\nCurrent Spent: $${budgetResult.spent.toFixed(2)}\nNew Total: $${budgetResult.new_total.toFixed(2)}\n\nDo you want to continue?`;
+                const confirmMsg = `WARNING: Budget Exceeded!\n\nBudget: Rp${budgetResult.budget.toFixed(2)}\nCurrent Spent: Rp${budgetResult.spent.toFixed(2)}\nNew Total: Rp${budgetResult.new_total.toFixed(2)}\n\nDo you want to continue?`;
                 if (!confirm(confirmMsg)) {
                     return;
                 }

@@ -75,6 +75,9 @@ The project that we created for the final project is a finance or money manageme
 12. To view the database `psql -h localhost -p 5432 -U postgres -d finance_manager`
 ```sql
 \l -- to see the list of all database
+
+### Demo video link
+https://youtu.be/1VbauxvH98o
 \dt -- to list all table in finance_manager
 \d table_name -- see table structure
 SELECT * FROM table_name;

@@ -41,7 +41,7 @@ On behalf of:
 ---
 
 ## Project Overview
-Money management
+The project that we created for the final project is a finance or money management web application. This web application has several features such as create, edit, delete, view the category, transactions, and budget. Not only that, users can also add new account (debit card or wallet) and delete it.
 
 ## Task Distribution
 1. Iffa Amalia Sabrina
@@ -55,18 +55,24 @@ Money management
     - Transaction CRUD
     - Account (Create, View, Delete)
 
-## Run Instruction (in Windows)
-1. Download PostgreSQL
-2. RUn installer
-3. Set the password in `.env` file
-4. Default port is `5432`
-5. Connect to PostgreSQL `psql -U postgres`
-6. Inside psql, create database: `CREATE DATABASE finance_manager;`
-7. Exit psql `\q`
-8. Run migrations `psql -U postgres -d finance_manager -f migrations\001_create_tables.sql`
-9. Install Go dependencies `go mod download` and `go mod tidy`
-10. Run the application `go run cmd/api/main.go` and it will start on `http://localhost:8080`
-11. To view the database `psql -h localhost -p 5432 -U postgres -d finance_manager`
+## Installation and Setup Instructions
+### Prerequisites
+- Golang (Go)
+- PostgreSQL
+- Git
+### Run Instruction (in Windows)
+1. Clone the repository
+2. Download PostgreSQL
+3. RUn installer
+4. Set the password in `.env` file
+5. Default port is `5432`
+6. Connect to PostgreSQL `psql -U postgres`
+7. Inside psql, create database: `CREATE DATABASE finance_manager;`
+8. Exit psql `\q`
+9. Run migrations `psql -U postgres -d finance_manager -f migrations\001_create_tables.sql`
+10. Install Go dependencies `go mod download` and `go mod tidy`
+11. Run the application `go run cmd/api/main.go` and it will start on `http://localhost:8080`
+12. To view the database `psql -h localhost -p 5432 -U postgres -d finance_manager`
 ```sql
 \l -- to see the list of all database
 \dt -- to list all table in finance_manager
